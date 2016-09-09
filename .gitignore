@@ -1,0 +1,5 @@
+# Binary code
+*.pyc
+
+# Config file
+config.py
