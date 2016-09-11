@@ -34,26 +34,34 @@ class UrbanBot:
 
     def define(self, bot, update):
         text = update.message.text
-        term = text.split("/define")[-1].strip()
+        term = text.split("/define")[-1].encode('utf-8').strip()
+        self.logger.info('SEARCH TERM: "{}"'.format(term))
+
         query_params = {
             'term': '{}'.format(term)
         }
         query_params = urllib.urlencode(query_params)
         query_url = config.URBAN_URL + query_params
         response = json.loads(urllib.urlopen(query_url).read())
+
         if len(response['list']) == 0:
-            bot_response = '*¯\_(ツ)_/¯* \n_{}_ not found'.format(term)
+            bot_response = '*¯\_(ツ)_/¯* \n"_{}_"not found'.format(term)
         else:
             bot_response = '*{}*\n\n'.format(term)
             for idx, value in enumerate(response['list']):
-                definition = value['definition'].encode('utf-8')
-                example = value['example'].encode('utf-8')
-                bot_response = bot_response + '{}. {}\n _{}_\n{}\n'.format(idx+1, definition, example, config.DIVISION)
+                definition = helper.make_pretty(value['definition'].encode('utf-8'))
+                example = helper.make_pretty(value['example'].encode('utf-8'))
+
+                bot_response = bot_response + '*{}*. {}\n _{}_\n\n'.format(idx+1, definition, example)
 
                 if idx == 2: # temporal so i dont get the 4096 characters error
                     break
 
-        bot.sendMessage(chat_id=update.message.chat_id, text=bot_response, parse_mode='Markdown')
+        try:
+            bot.sendMessage(chat_id=update.message.chat_id, text=bot_response, parse_mode='Markdown')
+        except TelegramError:
+            error = 'There was an error in retrieving *{}*, probably they messed with the _Markdown_ 👀👀👀'.format(term)
+            bot.sendMessage(chat_id=update.message.chat_id, text=error, parse_mode='Markdown')
 
 bot = UrbanBot()
 bot.start()
