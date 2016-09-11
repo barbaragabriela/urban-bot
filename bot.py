@@ -2,19 +2,21 @@
 
 from telegram.ext import Updater
 from telegram.ext import CommandHandler
+from telegram.error import TelegramError
 import urllib
 import json
 import logging
 
 import config
+import helper
 
 
 class UrbanBot:
     def __init__(self):
+        logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+        self.logger = logging.getLogger()
         self.updater = Updater(token=config.TOKEN)
-        self.logger = logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
         self.dispatcher = self.updater.dispatcher
-
         self.updater.start_polling()
 
 
