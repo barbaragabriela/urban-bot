@@ -63,5 +63,7 @@ class UrbanBot:
             error = 'There was an error in retrieving *{}*, probably they messed with the _Markdown_ 👀👀👀'.format(term)
             bot.sendMessage(chat_id=update.message.chat_id, text=error, parse_mode='Markdown')
 
-bot = UrbanBot()
-bot.start()
+
+if __name__ == '__main__':
+    bot = UrbanBot()
+    bot.start()
