@@ -40,6 +40,12 @@ class UrbanBot:
         term = text.split("/define")[-1].encode('utf-8').strip()
         self.logger.info('SEARCH TERM: "{}"'.format(term))
 
+        try:
+            arg = int(term.split(' ')[-1])
+            term = ' '.join(term.split(' ')[:-1])
+        except ValueError:
+            arg = 1
+
         query_params = {
             'term': '{}'.format(term)
         }
@@ -51,15 +57,7 @@ class UrbanBot:
             bot_response = '*¯\_(ツ)_/¯* \n"_{}_"not found'.format(term)
         else:
             bot_response = '*{}*\n\n'.format(term)
-            for idx, value in enumerate(response['list']):
-                definition = helper.make_pretty(value['definition'].encode('utf-8'))
-                example = helper.make_pretty(value['example'].encode('utf-8'))
-
-                formated_definition = '*{}*. {}\n _{}_\n\n'.format(idx+1, definition, example)
-                if len(bot_response + formated_definition) <= 4096:
-                    bot_response = bot_response + formated_definition
-                else:
-                    break
+            bot_response = bot_response + format_response(response, arg)
 
         send_message(bot, update, bot_response, term)
 
@@ -76,19 +74,27 @@ class UrbanBot:
         except ValueError:
             arg = 1
 
-        for i, value in enumerate(response['list']):
-            if arg == i:
-                break
-            term = value['word']
-            definition = helper.make_pretty(value['definition'].encode('utf-8'))
-            example = helper.make_pretty(value['example'].encode('utf-8'))
-            formated_definition = '*{}*\n {}\n _{}_\n→{}\n'.format(term, definition, example, value['permalink'])
-            if len(bot_response + formated_definition) <= 4096:
-                bot_response = bot_response + formated_definition
-            else:
-                break
-
+        bot_response = format_response(response, arg, term=False)
         send_message(bot, update, bot_response)
+
+
+def format_response(response, arg, term=True):
+    bot_response = ''
+    for i, value in enumerate(response['list']):
+        if arg == i:
+            break
+
+        definition = helper.make_pretty(value['definition'].encode('utf-8'))
+        example = helper.make_pretty(value['example'].encode('utf-8'))
+        if not term:
+            formated_definition = '*{}*\n {}\n _{}_\n→{}\n'.format(value['word'], definition, example, value['permalink'])
+        else:
+            formated_definition = '*{}*. {}\n _{}_\n\n'.format(i+1, definition, example)
+        if len(bot_response + formated_definition) <= 4096:
+            bot_response = bot_response + formated_definition
+        else:
+            break
+    return bot_response
 
 
 def send_message(bot, update, bot_response, term=None):
