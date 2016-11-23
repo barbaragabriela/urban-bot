@@ -34,6 +34,7 @@ class UrbanBot:
     def helpsies(self, bot, update):
         bot.sendMessage(chat_id=update.message.chat_id, text=config.HELP, parse_mode='Markdown')
 
+
     def define(self, bot, update):
         text = update.message.text
         term = text.split("/define")[-1].encode('utf-8').strip()
@@ -54,27 +55,51 @@ class UrbanBot:
                 definition = helper.make_pretty(value['definition'].encode('utf-8'))
                 example = helper.make_pretty(value['example'].encode('utf-8'))
 
-                bot_response = bot_response + '*{}*. {}\n _{}_\n\n'.format(idx+1, definition, example)
-
-                if idx == 2: # temporal so i dont get the 4096 characters error
+                formated_definition = '*{}*. {}\n _{}_\n\n'.format(idx+1, definition, example)
+                if len(bot_response + formated_definition) <= 4096:
+                    bot_response = bot_response + formated_definition
+                else:
                     break
 
-        try:
-            bot.sendMessage(chat_id=update.message.chat_id, text=bot_response, parse_mode='Markdown')
-        except TelegramError:
-            error = 'There was an error in retrieving *{}*, probably they messed with the _Markdown_ 👀👀👀'.format(term)
-            bot.sendMessage(chat_id=update.message.chat_id, text=error, parse_mode='Markdown')
+        send_message(bot, update, bot_response, term)
+
 
     def random(self, bot, update):
+        text = update.message.text
+        arg = text.split("/random")[-1].encode('utf-8').strip()
+
         query_url = config.URBAN_URL + config.RANDOM_URL
         response = json.loads(urllib.urlopen(query_url).read())
-        bot_response = bot_response
-
+        bot_response = ''
         try:
-            bot.sendMessage(chat_id=update.message.chat_id, text=bot_response, parse_mode='Markdown')
-        except TelegramError:
+            arg = int(arg)
+        except ValueError:
+            arg = 1
+
+        for i, value in enumerate(response['list']):
+            if arg == i:
+                break
+            term = value['word']
+            definition = helper.make_pretty(value['definition'].encode('utf-8'))
+            example = helper.make_pretty(value['example'].encode('utf-8'))
+            formated_definition = '*{}*\n {}\n _{}_\n→{}\n'.format(term, definition, example, value['permalink'])
+            if len(bot_response + formated_definition) <= 4096:
+                bot_response = bot_response + formated_definition
+            else:
+                break
+
+        send_message(bot, update, bot_response)
+
+
+def send_message(bot, update, bot_response, term=None):
+    try:
+        bot.sendMessage(chat_id=update.message.chat_id, text=bot_response, parse_mode='Markdown')
+    except TelegramError:
+        if term is None:
             error = 'There was an error retrieveing a random word, probably they messed with the _Markdown_ 👀👀👀'
-            bot.sendMessage(chat_id=update.message.chat_id, text=error, parse_mode='Markdown')
+        else:
+            error = 'There was an error in retrieving *{}*, probably they messed with the _Markdown_ 👀👀👀'.format(term)
+        bot.sendMessage(chat_id=update.message.chat_id, text=error, parse_mode='Markdown')
 
 
 if __name__ == '__main__':
