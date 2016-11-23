@@ -27,10 +27,12 @@ class UrbanBot:
         define_handler = CommandHandler('define', self.define)
         self.dispatcher.add_handler(define_handler)
 
+        random_handler = CommandHandler('random', self.random)
+        self.dispatcher.add_handler(random_handler)
+
 
     def helpsies(self, bot, update):
         bot.sendMessage(chat_id=update.message.chat_id, text=config.HELP, parse_mode='Markdown')
-
 
     def define(self, bot, update):
         text = update.message.text
@@ -41,7 +43,7 @@ class UrbanBot:
             'term': '{}'.format(term)
         }
         query_params = urllib.urlencode(query_params)
-        query_url = config.URBAN_URL + query_params
+        query_url = config.URBAN_URL + config.DEFINE_URL + query_params
         response = json.loads(urllib.urlopen(query_url).read())
 
         if len(response['list']) == 0:
@@ -61,6 +63,17 @@ class UrbanBot:
             bot.sendMessage(chat_id=update.message.chat_id, text=bot_response, parse_mode='Markdown')
         except TelegramError:
             error = 'There was an error in retrieving *{}*, probably they messed with the _Markdown_ 👀👀👀'.format(term)
+            bot.sendMessage(chat_id=update.message.chat_id, text=error, parse_mode='Markdown')
+
+    def random(self, bot, update):
+        query_url = config.URBAN_URL + config.RANDOM_URL
+        response = json.loads(urllib.urlopen(query_url).read())
+        bot_response = bot_response
+
+        try:
+            bot.sendMessage(chat_id=update.message.chat_id, text=bot_response, parse_mode='Markdown')
+        except TelegramError:
+            error = 'There was an error retrieveing a random word, probably they messed with the _Markdown_ 👀👀👀'
             bot.sendMessage(chat_id=update.message.chat_id, text=error, parse_mode='Markdown')
 
 
