@@ -13,5 +13,11 @@ HELP = """
 urbanBot helps you query urbandictionary from the commodity of your telegram chat 👻👻👻
 
 to define something use the ```/define``` command.
-"""
 
+to get a random definition use the ```/random``` command.
+
+each command returns one definition but you can ask for more adding the number of definitions you want, for example:
+```/random 5```
+or 
+```/define hello 2```
+"""
